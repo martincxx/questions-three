@@ -21,7 +21,7 @@ export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [initialDistance, setInitialDistance] = useState(0);
-  const [initialSize, setInitialSize] = useState({ width: 0, height: 0 });
+  const [initialHeight, setInitialHeight] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
@@ -148,7 +148,7 @@ export default function Home() {
   const getDistance = (touch1, touch2) => {
     return Math.sqrt(
       Math.pow(touch2.clientX - touch1.clientX, 2) +
-      Math.pow(touch2.clientY - touch1.clientY, 2)
+        Math.pow(touch2.clientY - touch1.clientY, 2)
     );
   };
 
@@ -157,7 +157,7 @@ export default function Home() {
     if (e.touches.length === 2) {
       setIsResizing(true);
       setInitialDistance(getDistance(e.touches[0], e.touches[1]));
-      setInitialSize({ width: focusArea.width, height: focusArea.height });
+      setInitialHeight(focusArea.height);
     } else {
       setIsDragging(true);
     }
@@ -166,17 +166,18 @@ export default function Home() {
   const handleTouchMove = (e) => {
     e.preventDefault();
     const rect = e.currentTarget.parentElement.getBoundingClientRect();
-    
+
     if (isResizing && e.touches.length === 2) {
       const currentDistance = getDistance(e.touches[0], e.touches[1]);
       const scale = currentDistance / initialDistance;
-      const newWidth = Math.max(50, Math.min(initialSize.width * scale, rect.width - focusArea.x));
-      const newHeight = Math.max(30, Math.min(initialSize.height * scale, rect.height - focusArea.y));
-      
-      setFocusArea(prev => ({
+      const newHeight = Math.max(
+        30,
+        Math.min(initialHeight * scale, rect.height - focusArea.y)
+      );
+
+      setFocusArea((prev) => ({
         ...prev,
-        width: newWidth,
-        height: newHeight
+        height: newHeight,
       }));
     } else if (isDragging && e.touches.length === 1) {
       const touch = e.touches[0];
@@ -225,11 +226,11 @@ export default function Home() {
         style={{
           fontSize: '20px',
           margin: '10px 0',
-          color: '#333',
+          color: '#302c69ff',
           flexShrink: 0,
         }}
       >
-        Фото OCR-сканер
+        Фото OCR-сканер - Версия 0.2.2 [только вопрос]
       </h1>
       <div style={{ flex: '0 0 auto', marginBottom: '10px' }}>
         {!capturedPhoto ? (
@@ -287,45 +288,37 @@ export default function Home() {
                   borderRadius: '3px',
                 }}
               >
-                {isResizing ? 'Изменение размера' : isDragging ? 'Перемещение' : 'Активная зона'}
+                {isResizing
+                  ? 'Изменение размера'
+                  : isDragging
+                  ? 'Перемещение'
+                  : 'Активная зона'}
               </div>
-              {/* Corner resize handles */}
-              <div style={{
-                position: 'absolute',
-                top: '-5px',
-                left: '-5px',
-                width: '10px',
-                height: '10px',
-                backgroundColor: '#007bff',
-                borderRadius: '50%'
-              }} />
-              <div style={{
-                position: 'absolute',
-                top: '-5px',
-                right: '-5px',
-                width: '10px',
-                height: '10px',
-                backgroundColor: '#007bff',
-                borderRadius: '50%'
-              }} />
-              <div style={{
-                position: 'absolute',
-                bottom: '-5px',
-                left: '-5px',
-                width: '10px',
-                height: '10px',
-                backgroundColor: '#007bff',
-                borderRadius: '50%'
-              }} />
-              <div style={{
-                position: 'absolute',
-                bottom: '-5px',
-                right: '-5px',
-                width: '10px',
-                height: '10px',
-                backgroundColor: '#007bff',
-                borderRadius: '50%'
-              }} />
+              {/* Height resize handles */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '-5px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '10px',
+                  height: '10px',
+                  backgroundColor: '#007bff',
+                  borderRadius: '50%',
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '-5px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '10px',
+                  height: '10px',
+                  backgroundColor: '#007bff',
+                  borderRadius: '50%',
+                }}
+              />
             </div>
           </div>
         )}
