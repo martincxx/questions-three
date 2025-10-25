@@ -19,6 +19,9 @@ export default function Home() {
     height: 120,
   });
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [initialDistance, setInitialDistance] = useState(0);
+  const [initialSize, setInitialSize] = useState({ width: 0, height: 0 });
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
@@ -142,28 +145,55 @@ export default function Home() {
     setShowPopup(false);
   };
 
+  const getDistance = (touch1, touch2) => {
+    return Math.sqrt(
+      Math.pow(touch2.clientX - touch1.clientX, 2) +
+      Math.pow(touch2.clientY - touch1.clientY, 2)
+    );
+  };
+
   const handleTouchStart = (e) => {
     e.preventDefault();
-    setIsDragging(true);
+    if (e.touches.length === 2) {
+      setIsResizing(true);
+      setInitialDistance(getDistance(e.touches[0], e.touches[1]));
+      setInitialSize({ width: focusArea.width, height: focusArea.height });
+    } else {
+      setIsDragging(true);
+    }
   };
 
   const handleTouchMove = (e) => {
-    if (!isDragging) return;
     e.preventDefault();
-    const touch = e.touches[0];
     const rect = e.currentTarget.parentElement.getBoundingClientRect();
-    const x = touch.clientX - rect.left - focusArea.width / 2;
-    const y = touch.clientY - rect.top - focusArea.height / 2;
-    setFocusArea((prev) => ({
-      ...prev,
-      x: Math.max(0, Math.min(x, rect.width - prev.width)),
-      y: Math.max(0, Math.min(y, rect.height - prev.height)),
-    }));
+    
+    if (isResizing && e.touches.length === 2) {
+      const currentDistance = getDistance(e.touches[0], e.touches[1]);
+      const scale = currentDistance / initialDistance;
+      const newWidth = Math.max(50, Math.min(initialSize.width * scale, rect.width - focusArea.x));
+      const newHeight = Math.max(30, Math.min(initialSize.height * scale, rect.height - focusArea.y));
+      
+      setFocusArea(prev => ({
+        ...prev,
+        width: newWidth,
+        height: newHeight
+      }));
+    } else if (isDragging && e.touches.length === 1) {
+      const touch = e.touches[0];
+      const x = touch.clientX - rect.left - focusArea.width / 2;
+      const y = touch.clientY - rect.top - focusArea.height / 2;
+      setFocusArea((prev) => ({
+        ...prev,
+        x: Math.max(0, Math.min(x, rect.width - prev.width)),
+        y: Math.max(0, Math.min(y, rect.height - prev.height)),
+      }));
+    }
   };
 
   const handleTouchEnd = (e) => {
     e.preventDefault();
     setIsDragging(false);
+    setIsResizing(false);
   };
 
   const findQuestion = (scannedText) => {
@@ -257,8 +287,45 @@ export default function Home() {
                   borderRadius: '3px',
                 }}
               >
-                Активная зона
+                {isResizing ? 'Изменение размера' : isDragging ? 'Перемещение' : 'Активная зона'}
               </div>
+              {/* Corner resize handles */}
+              <div style={{
+                position: 'absolute',
+                top: '-5px',
+                left: '-5px',
+                width: '10px',
+                height: '10px',
+                backgroundColor: '#007bff',
+                borderRadius: '50%'
+              }} />
+              <div style={{
+                position: 'absolute',
+                top: '-5px',
+                right: '-5px',
+                width: '10px',
+                height: '10px',
+                backgroundColor: '#007bff',
+                borderRadius: '50%'
+              }} />
+              <div style={{
+                position: 'absolute',
+                bottom: '-5px',
+                left: '-5px',
+                width: '10px',
+                height: '10px',
+                backgroundColor: '#007bff',
+                borderRadius: '50%'
+              }} />
+              <div style={{
+                position: 'absolute',
+                bottom: '-5px',
+                right: '-5px',
+                width: '10px',
+                height: '10px',
+                backgroundColor: '#007bff',
+                borderRadius: '50%'
+              }} />
             </div>
           </div>
         )}
